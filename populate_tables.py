@@ -1,6 +1,4 @@
-import pandas as pd
 from faker import Faker
-import random
 import mysql.connector
 from mysql.connector import Error
 from dotenv import load_dotenv
@@ -68,6 +66,40 @@ def populate_customers(
         print("Table customers is already populated")
 
 
+def populate_products(
+    n_products: int, fake: Faker, batch_size: int = 5000, **kwargs
+) -> None:
+
+    if if_table_is_empty("products", **kwargs):
+
+        insert_query = """
+        INSERT INTO products (product_name, unit_price)
+        VALUES (%s, %s)"""
+
+        try:
+            with mysql.connector.connect(**kwargs) as connection:
+                with connection.cursor() as cursor:
+                    data = []
+                    for _ in range(n_products):
+                        name = fake.word()
+                        price = fake.random_int(min=1, max=1000)
+                        data.append((name, price))
+
+                        if len(data) == batch_size:
+                            cursor.executemany(insert_query, data)
+                            connection.commit()
+                            data = []
+                    if data:
+                        cursor.executemany(insert_query, data)
+                        connection.commit()
+
+        except Error as e:
+            print(f"Error: {e}")
+
+    else:
+        print("Table products is already populated")
+
+
 if __name__ == "__main__":
 
     load_dotenv()
@@ -80,4 +112,5 @@ if __name__ == "__main__":
         "database": "OMNI_MANAGEMENT",
     }
 
-    populate_customers(100000, fake, **my_sql_data)
+    populate_customers(1000, fake, **my_sql_data)
+    populate_products(3000, fake, **my_sql_data)
