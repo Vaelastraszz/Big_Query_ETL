@@ -100,6 +100,50 @@ def populate_products(
         print("Table products is already populated")
 
 
+def populate_channels(**kwargs) -> None:
+
+    if if_table_is_empty("channels", **kwargs):
+
+        insert_query = """
+        INSERT INTO channels (channel_name)
+        VALUES (%s)"""
+
+        acquisition_channels = [
+            "Instagram",
+            "Facebook",
+            "Email",
+            "YouTube",
+            "Organic Search",
+            "Paid Search",
+            "Twitter",
+            "LinkedIn",
+            "Referral",
+            "Direct",
+            "Display Ads",
+            "Affiliate Marketing",
+            "Snapchat",
+            "TikTok",
+            "Pinterest",
+            "Influencer Marketing",
+            "Webinars",
+            "Podcasts",
+        ]
+
+        try:
+            with mysql.connector.connect(**kwargs) as connection:
+                with connection.cursor() as cursor:
+                    cursor.executemany(
+                        insert_query, [(channel,) for channel in acquisition_channels]
+                    )
+                    connection.commit()
+
+        except Error as e:
+            print(f"Error: {e}")
+
+    else:
+        print("Table channels is already populated")
+
+
 if __name__ == "__main__":
 
     load_dotenv()
@@ -114,3 +158,4 @@ if __name__ == "__main__":
 
     populate_customers(1000, fake, **my_sql_data)
     populate_products(3000, fake, **my_sql_data)
+    populate_channels(**my_sql_data)
