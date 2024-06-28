@@ -1,5 +1,3 @@
-#!/Users/romainlejeune/Desktop/Python/Scripts/Big_Query_ETL/my_env/bin/python3
-
 import pandas as pd
 from faker import Faker
 import random
