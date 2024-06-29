@@ -6,17 +6,48 @@ from google.cloud import bigquery
 
 
 def connect_bq(**kwargs) -> bigquery.Client:
+    """
+    Connects to BigQuery using the provided project ID.
+
+    Args:
+        **kwargs: Keyword arguments containing the BigQuery project ID.
+
+    Returns:
+        bigquery.Client: A client object for interacting with BigQuery.
+
+    """
     project_id = kwargs.get("bq_project_id")
     print(f"Connecting to BigQuery project {project_id}")
     return bigquery.Client(project=project_id)
 
 
-def extract_table_from_mysql(table_name: str, cnx) -> pd.DataFrame:
+def extract_table_from_mysql(
+    table_name: str, cnx: connection.MySQLConnection
+) -> pd.DataFrame:
+    """
+    Extracts data from a MySQL table.
+
+    Args:
+        table_name (str): The name of the table to extract data from.
+        cnx: The MySQL connection object.
+
+    Returns:
+        pd.DataFrame: A pandas DataFrame containing the extracted data.
+    """
     query = f"SELECT * FROM {table_name}"
     return pd.read_sql(query, cnx)
 
 
 def transform_data_from_table(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Transforms the data in the given DataFrame by converting object columns to string type.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+
+    Returns:
+        pd.DataFrame: The transformed DataFrame.
+    """
     object_columns = df.select_dtypes(include=["object"]).columns
     for col in object_columns:
         df[col] = df[col].astype(str)
@@ -29,6 +60,18 @@ def load_data_to_bq(
     project_id: str,
     dataset: str,
 ) -> None:
+    """
+    Loads data from a pandas DataFrame into a BigQuery table.
+
+    Args:
+        df (pd.DataFrame): The DataFrame containing the data to be loaded.
+        table_name (str): The name of the BigQuery table to load the data into.
+        project_id (str): The ID of the BigQuery project.
+        dataset (str): The name of the BigQuery dataset.
+
+    Returns:
+        None
+    """
     full_table_name = f"{dataset}.{table_name}"
     gbq.to_gbq(
         df,
@@ -39,6 +82,21 @@ def load_data_to_bq(
 
 
 def data_pipeline_mysql_to_bq(**kwargs) -> None:
+    """
+    Extracts data from MySQL tables, transforms it, and loads it into BigQuery.
+
+    Args:
+        **kwargs: Keyword arguments containing the following parameters:
+            - host (str): MySQL host address.
+            - user (str): MySQL username.
+            - password (str): MySQL password.
+            - database (str): MySQL database name.
+            - bq_project_id (str): BigQuery project ID.
+            - dataset (str): BigQuery dataset name.
+
+    Returns:
+        None
+    """
 
     mysql_host = kwargs.get("host")
     mysql_user = kwargs.get("user")
