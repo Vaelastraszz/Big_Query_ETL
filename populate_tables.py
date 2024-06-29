@@ -1,5 +1,6 @@
 from faker import Faker
 import random
+from datetime import timedelta
 import mysql.connector
 from mysql.connector import Error
 from dotenv import load_dotenv
@@ -267,6 +268,75 @@ def populate_purshaseHistory(n_orders: int, batch_size: int = 10000, **kwargs) -
         print("Table purchaseHistory is already populated")
 
 
+def populate_visitHistory(n_visits: int, batch_size: int = 5000, **kwargs) -> None:
+    """
+    Populates the visitHistory table with randomly generated data.
+
+    Args:
+        n_visits (int): The number of visits to generate and insert into the table.
+        batch_size (int, optional): The number of visits to insert in a single batch. Defaults to 10000.
+        **kwargs: Additional keyword arguments to pass to the database connection.
+
+    Returns:
+        None
+    """
+
+    def generate_safe_timestamp() -> str:
+        """
+        Generate a safe timestamp to avoid issues with MySQL datetime format.
+
+        Returns:
+            str: A safe timestamp string.
+        """
+        unsafe_hours = [2]
+
+        while True:
+            visit_timestamp = fake.date_time_between(start_date="-2y", end_date="now")
+            bounce_timestamp = visit_timestamp + timedelta(
+                minutes=fake.random_int(min=1, max=120)
+            )
+            if (
+                visit_timestamp.hour not in unsafe_hours
+                and bounce_timestamp.hour not in unsafe_hours
+            ):
+                return visit_timestamp.strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                ), bounce_timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            else:
+                continue
+
+    if if_table_is_empty("visitHistory", **kwargs):
+        insert_query = """
+        INSERT INTO visitHistory (customer_id, channel_id, visit_timestamp, bounce_timestamp)
+        VALUES (%s, %s, %s, %s)"""
+
+        try:
+            with mysql.connector.connect(**kwargs) as connection:
+                with connection.cursor() as cursor:
+                    data = []
+                    for _ in range(n_visits):
+                        customer_id = fake.random_int(min=1, max=1000)
+                        channel_id = fake.random_int(min=1, max=18)
+                        visit_timestamp, bounce_timestamp = generate_safe_timestamp()
+                        data.append(
+                            (customer_id, channel_id, visit_timestamp, bounce_timestamp)
+                        )
+
+                        if len(data) == batch_size:
+                            cursor.executemany(insert_query, data)
+                            connection.commit()
+                            data = []
+                    if data:
+                        cursor.executemany(insert_query, data)
+                        connection.commit()
+
+        except Error as e:
+            print(f"Error: {e}")
+
+    else:
+        print("Table visitHistory is already populated")
+
+
 if __name__ == "__main__":
 
     load_dotenv()
@@ -283,3 +353,4 @@ if __name__ == "__main__":
     populate_products(3000, fake, **my_sql_data)
     populate_channels(**my_sql_data)
     populate_purshaseHistory(500000, **my_sql_data)
+    populate_visitHistory(1000000, **my_sql_data)
