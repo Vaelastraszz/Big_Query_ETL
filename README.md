@@ -1,5 +1,3 @@
-# Big_Query_ETL
-
 # BigQuery ETL Project
 
 This project provides tools for performing ETL (Extract, Transform, Load) operations between a MySQL database and Google BigQuery. It includes scripts to populate the MySQL database with synthetic data using the Faker library and transfer this data to BigQuery for analysis.
