@@ -106,3 +106,20 @@ To truncate tables while avoiding foreign key issues, execute the following SQL 
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE visitHistory;
 SET FOREIGN_KEY_CHECKS = 1;
+```
+
+## Requirements
+
+- Python 3.6+
+- MySQL
+- Google Cloud SDK
+- pandas
+- Faker
+- python-dotenv
+- pandas-gbq
+
+### Acknowledgments
+- Faker for generating fake data.
+- Google Cloud BigQuery for data warehousing and analytics.
+- pandas-gbq for loading data into BigQuery.
+
