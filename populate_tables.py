@@ -7,19 +7,40 @@ import os
 
 
 def check_connection(**kwargs) -> bool:
+    """
+    Check the connection to a MySQL database using the provided connection parameters.
+
+    Args:
+        **kwargs: Connection parameters for the MySQL database.
+
+    Returns:
+        bool: True if the connection is successful, False otherwise.
+    """
     try:
         connection = mysql.connector.connect(**kwargs)
         if connection.is_connected():
             print("Connection established")
             connection.close()
+            return True
         else:
             print("Connection failed")
+            return False
     except Error as e:
         print(f"Error: {e}")
         return False
 
 
 def if_table_is_empty(table_name: str, **kwargs) -> bool:
+    """
+    Checks if a table is empty.
+
+    Args:
+        table_name (str): The name of the table to check.
+        **kwargs: Additional keyword arguments to pass to the mysql.connector.connect function.
+
+    Returns:
+        bool: True if the table is empty, False otherwise.
+    """
     with mysql.connector.connect(**kwargs) as connection:
         with connection.cursor() as cursor:
             cursor.execute(f"select exists(select 1 from {table_name} limit 1)")
@@ -33,6 +54,18 @@ def if_table_is_empty(table_name: str, **kwargs) -> bool:
 def populate_customers(
     n_customers: int, fake: Faker, batch_size: int = 5000, **kwargs
 ) -> None:
+    """
+    Populates the 'customers' table with randomly generated customer data.
+
+    Args:
+        n_customers (int): The number of customers to generate and insert into the table.
+        fake (Faker): An instance of the Faker class for generating fake data.
+        batch_size (int, optional): The number of records to insert in each batch. Defaults to 5000.
+        **kwargs: Additional keyword arguments to be passed to the MySQL connector.
+
+    Returns:
+        None
+    """
 
     if if_table_is_empty("customers", **kwargs):
 
@@ -70,6 +103,18 @@ def populate_customers(
 def populate_products(
     n_products: int, fake: Faker, batch_size: int = 5000, **kwargs
 ) -> None:
+    """
+    Populates the 'products' table with randomly generated product names and prices.
+
+    Args:
+        n_products (int): The number of products to generate and insert into the table.
+        fake (Faker): An instance of the Faker class for generating fake data.
+        batch_size (int, optional): The number of records to insert in each batch. Defaults to 5000.
+        **kwargs: Additional keyword arguments to pass to the MySQL connector.
+
+    Returns:
+        None
+    """
 
     if if_table_is_empty("products", **kwargs):
 
@@ -102,6 +147,15 @@ def populate_products(
 
 
 def populate_channels(**kwargs) -> None:
+    """
+    Populates the 'channels' table with predefined acquisition channels.
+
+    Args:
+        **kwargs: Keyword arguments for establishing a connection to the database.
+
+    Returns:
+        None
+    """
 
     if if_table_is_empty("channels", **kwargs):
 
@@ -146,8 +200,25 @@ def populate_channels(**kwargs) -> None:
 
 
 def populate_purshaseHistory(n_orders: int, batch_size: int = 10000, **kwargs) -> None:
+    """
+    Populates the purchaseHistory table with randomly generated data.
+
+    Args:
+        n_orders (int): The number of orders to generate and insert into the table.
+        batch_size (int, optional): The number of orders to insert in a single batch. Defaults to 10000.
+        **kwargs: Additional keyword arguments to pass to the database connection.
+
+    Returns:
+        None
+    """
 
     def generate_discount() -> float:
+        """
+        Generate a random discount value based on predefined weights.
+
+        Returns:
+            float: A randomly generated discount value.
+        """
         discount = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6]
         weights = [0.5, 0.1, 0.1, 0.1, 0.05, 0.05, 0.05, 0.025, 0.025, 0.025]
         return random.choices(discount, weights=weights)[0]
